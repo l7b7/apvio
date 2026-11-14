@@ -6,4 +6,7 @@ Thumbs.db
 node_modules/
 dist/
 coverage/
+.next/
+.npm-cache/
+.vercel/
 
