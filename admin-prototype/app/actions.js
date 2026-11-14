@@ -14,6 +14,7 @@ export async function loginAction(formData) {
   const email = clean(formData.get('email'), 254).toLowerCase();
   const password = String(formData.get('password') || '');
   const supabase = await createClient();
+  if (!password || password.length > 128) redirect('/login?message=تعذر%20تسجيل%20الدخول.%20تحقق%20من%20البيانات.');
   if (email !== process.env.APVIO_ADMIN_EMAIL?.toLowerCase()) redirect('/login?message=هذا%20الحساب%20غير%20مصرح%20له.');
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) redirect('/login?message=تعذر%20تسجيل%20الدخول.%20تحقق%20من%20البيانات.');
@@ -25,8 +26,10 @@ export async function loginAction(formData) {
 export async function requestAdminAccessAction(formData) {
   const email = clean(formData.get('email'), 254).toLowerCase();
   if (email !== process.env.APVIO_ADMIN_EMAIL?.toLowerCase()) redirect('/login?message=هذا%20البريد%20غير%20مصرح%20له.');
+  const password = String(formData.get('newPassword') || '');
+  if (password.length < 12 || password.length > 128) redirect('/login?message=استخدم%20كلمة%20مرور%20من%2012%20إلى%20128%20حرفاً.');
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({ email, password: String(formData.get('newPassword') || ''), options: {
+  const { error } = await supabase.auth.signUp({ email, password, options: {
     emailRedirectTo: `${process.env.APVIO_ADMIN_URL}/auth/confirm`,
   }});
   if (error) redirect('/login?message=تعذر%20إنشاء%20الحساب.%20قد%20يكون%20مسجلاً%20مسبقاً.');
