@@ -36,6 +36,21 @@ export async function requestAdminAccessAction(formData) {
   redirect('/login?message=أرسلنا%20رابط%20تأكيد%20إلى%20البريد.%20افتحه%20ثم%20سجّل%20الدخول.');
 }
 
+export async function resendAdminConfirmationAction(formData) {
+  const email = clean(formData.get('email'), 254).toLowerCase();
+  if (email !== process.env.APVIO_ADMIN_EMAIL?.toLowerCase()) {
+    redirect('/login?message=هذا%20البريد%20غير%20مصرح%20له.');
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: `${process.env.APVIO_ADMIN_URL}/auth/confirm` },
+  });
+  if (error) redirect('/login?message=تعذر%20إرسال%20الرابط.%20انتظر%20قليلاً%20ثم%20حاول%20مجدداً.');
+  redirect('/login?message=أرسلنا%20رابط%20تأكيد%20جديداً%20إذا%20كان%20الحساب%20بانتظار%20التأكيد.%20راجع%20البريد%20والمزعج.');
+}
+
 export async function logoutAction() {
   const supabase = await createClient();
   await supabase.auth.signOut();
