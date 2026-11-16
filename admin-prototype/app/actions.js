@@ -9,6 +9,7 @@ import { requireAdmin } from '../lib/supabase/admin';
 const categories = new Set(['productivity', 'photography', 'personalization', 'tools']);
 const clean = (value, max) => String(value || '').trim().slice(0, max);
 const safeFileName = (name) => name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-120);
+const redirectLoginMessage = (message) => redirect(`/login?message=${encodeURIComponent(message)}`);
 
 export async function loginAction(formData) {
   const email = clean(formData.get('email'), 254).toLowerCase();
@@ -39,7 +40,7 @@ export async function requestAdminAccessAction(formData) {
 export async function resendAdminConfirmationAction(formData) {
   const email = clean(formData.get('email'), 254).toLowerCase();
   if (email !== process.env.APVIO_ADMIN_EMAIL?.toLowerCase()) {
-    redirect('/login?message=هذا%20البريد%20غير%20مصرح%20له.');
+    redirectLoginMessage('هذا البريد غير مصرّح له.');
   }
   const supabase = await createClient();
   const { error } = await supabase.auth.resend({
@@ -47,8 +48,8 @@ export async function resendAdminConfirmationAction(formData) {
     email,
     options: { emailRedirectTo: `${process.env.APVIO_ADMIN_URL}/auth/confirm` },
   });
-  if (error) redirect('/login?message=تعذر%20إرسال%20الرابط.%20انتظر%20قليلاً%20ثم%20حاول%20مجدداً.');
-  redirect('/login?message=أرسلنا%20رابط%20تأكيد%20جديداً%20إذا%20كان%20الحساب%20بانتظار%20التأكيد.%20راجع%20البريد%20والمزعج.');
+  if (error) redirectLoginMessage('تعذر إرسال الرابط. انتظر قليلاً ثم حاول مجدداً.');
+  redirectLoginMessage('أرسلنا رابط تأكيد جديداً إذا كان الحساب بانتظار التأكيد. راجع البريد والمزعج.');
 }
 
 export async function logoutAction() {
